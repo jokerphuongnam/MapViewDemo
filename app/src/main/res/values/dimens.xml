@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="height_layout_drag_view">16dp</dimen>
+    <dimen name="height_drag_view">4dp</dimen>
+</resources>
