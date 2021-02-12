@@ -44,7 +44,7 @@ class SettingBottomSheet(
 
     private val onDragView: View.OnTouchListener by lazy {
         View.OnTouchListener { _, event ->
-            if(event.action == MotionEvent.ACTION_DOWN) {
+            if (event.action == MotionEvent.ACTION_DOWN) {
                 bottomSheetBehavior.isDraggable = true
             }
             true
@@ -55,41 +55,46 @@ class SettingBottomSheet(
         @SuppressLint("UseCompatLoadingForDrawables")
         object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-                Log.d("aaaaaaaaaaaaaaaaa", newState.toString())
-                when(newState){
-                    BottomSheetBehavior.STATE_COLLAPSED ->{
-                        bottomSheetBehavior.isDraggable = false
-                    }
+                if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+                    bottomSheetBehavior.isDraggable = false
                 }
             }
 
             private var isChanged = false
             private var isHalfExpanded = false
 
+            private val lessThanHalfExpandHandle: Event by lazy {
+                Event()
+            }
+
+            private val greaterThanHalfHandle: Event by lazy {
+                Event()
+            }
+
             @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
 //                Log.d("ccccccccccccccccccc", slideOffset.toString())
-                if (slideOffset >= 0.5) {
-                    val currentActionBarSize = actionBarSize * (slideOffset - ratioHalfExpanded) * (1/ ratioHalfExpanded)
+                if (slideOffset >= ratioHalfExpanded) {
+                    val currentActionBarSize =
+                        actionBarSize * (slideOffset - ratioHalfExpanded) * (1 / ratioHalfExpanded)
                     showAppBar(toolbar, currentActionBarSize - actionBarSize)
                     showView(appbar, currentActionBarSize.toInt())
-                    isHalfExpanded = false
+                    lessThanHalfExpandHandle.reset()
                     if (slideOffset == 1.0F) {
-                        isChanged = true
-                        isHalfExpanded = false
-//                        hideView(binding.dragView)
-                        hideView(binding.view)
-                        showView(binding.dragView, 8)
-                        binding.bottomSheet.setBackgroundResource(uncorner)
-                    } else if (isChanged) {
-                        showView(binding.dragView, dragViewSize.toInt())
-                        showView(binding.view, viewSize.toInt())
-                        isChanged = false
-                        binding.bottomSheet.setBackgroundResource(top_corner)
+                        greaterThanHalfHandle.reset {
+                            hideView(binding.view)
+                            showView(binding.dragView, 8)
+                            binding.bottomSheet.setBackgroundResource(uncorner)
+                        }
+                    } else {
+                        greaterThanHalfHandle.treatIfNotProcess {
+                            showView(binding.dragView, dragViewSize.toInt())
+                            showView(binding.view, viewSize.toInt())
+                            binding.bottomSheet.setBackgroundResource(top_corner)
+                        }
                     }
                 } else {
-                    if (!isHalfExpanded) {
-                        isHalfExpanded = true
+                    lessThanHalfExpandHandle.treatIfNotProcess {
                         hideView(appbar)
                     }
                 }
@@ -97,7 +102,7 @@ class SettingBottomSheet(
         }
     }
 
-    private val dragViewSize:Float by lazy {
+    private val dragViewSize: Float by lazy {
         activity.resources.getDimension(R.dimen.height_layout_drag_view)
     }
 
@@ -132,4 +137,25 @@ class SettingBottomSheet(
         set(value) {
             bottomSheetBehavior.state = value
         }
+
+    class Event {
+        var hasBeenHandled: Boolean = false
+            private set
+
+        fun treatIfNotProcess(handle: (() -> Unit)?) {
+            if (!hasBeenHandled) {
+                hasBeenHandled = true
+                handle?.invoke()
+            }
+        }
+
+        fun treatIfNotProcess() = treatIfNotProcess(null)
+
+        fun reset(handle: (() -> Unit)?) {
+            hasBeenHandled = false
+            handle?.invoke()
+        }
+
+        fun reset() = reset(null)
+    }
 }

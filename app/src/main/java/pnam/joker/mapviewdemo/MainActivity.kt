@@ -3,6 +3,7 @@ package pnam.joker.mapviewdemo
 import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -35,6 +36,20 @@ class MainActivity : AppCompatActivity() {
     private fun setUpActionBar() {
         setSupportActionBar(binding.toolbar)
         title = null
+        val actionBar = supportActionBar
+        actionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.ic_back_arrow)
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setUpGoogleMap() {
@@ -76,15 +91,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        when (settingBottomSheet.state) {
-            BottomSheetBehavior.STATE_HALF_EXPANDED, BottomSheetBehavior.STATE_EXPANDED -> {
-                settingBottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
-            }
-            else -> {
-                super.onBackPressed()
+        if (isShowKeyBoard) {
+            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
+                .hideSoftInputFromWindow(
+                    currentFocus?.windowToken,
+                    0
+                )
+        } else {
+            when (settingBottomSheet.state) {
+                BottomSheetBehavior.STATE_HALF_EXPANDED, BottomSheetBehavior.STATE_EXPANDED -> {
+                    settingBottomSheet.state = BottomSheetBehavior.STATE_COLLAPSED
+                }
+                else -> {
+                    super.onBackPressed()
+                }
             }
         }
     }
+
+    private val isShowKeyBoard: Boolean
+        get() = (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).isAcceptingText
 
     private fun unFocus() {
         currentFocus?.clearFocus()
