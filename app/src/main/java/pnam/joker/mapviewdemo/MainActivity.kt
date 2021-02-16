@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil.setContentView
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -62,11 +63,28 @@ class MainActivity : AppCompatActivity() {
                     MarkerOptions().position(latlng).title("Current")
                 )
             }
+            map.mapType = GoogleMap.MAP_TYPE_NONE
         }
     }
 
     private val settingBottomSheet: SettingBottomSheet by lazy {
-        SettingBottomSheet(this, binding.bottomSheet, binding.appbar, binding.toolbar)
+        SettingBottomSheet(
+            this,
+            binding.bottomSheet,
+            binding.appbar,
+            binding.toolbar,
+            changeStyleMap
+        )
+    }
+
+    private val changeStyleMap: (id: Int) -> Unit by lazy {
+        { id ->
+            if (id < 6) {
+                map.mapType = id
+            } else {
+
+            }
+        }
     }
 
     private fun setUpBottomSheet() {

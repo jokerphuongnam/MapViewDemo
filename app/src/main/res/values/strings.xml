@@ -1,4 +1,18 @@
 <resources>
     <string name="app_name">MapViewDemo</string>
     <string name="title_activity_maps">Map</string>
+    <string name="none">None</string>
+    <string name="normal">Normal</string>
+    <string name="satellite">Satellite</string>
+    <string name="terrain">Terrain</string>
+    <string name="hybrid">Hybrid</string>
+    <string name="auto">Auto</string>
+    <string-array name="styles">
+        <item>@string/none</item>
+        <item>@string/normal</item>
+        <item>@string/satellite</item>
+        <item>@string/terrain</item>
+        <item>@string/hybrid</item>
+        <item>@string/auto</item>
+    </string-array>
 </resources>

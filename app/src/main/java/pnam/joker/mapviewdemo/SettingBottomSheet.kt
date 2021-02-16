@@ -3,10 +3,11 @@ package pnam.joker.mapviewdemo
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Build
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.AdapterView
 import android.widget.LinearLayout
+import android.widget.RadioGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.appbar.AppBarLayout
@@ -21,11 +22,16 @@ class SettingBottomSheet(
     private val activity: Activity,
     private val binding: BottomSheetSettingBinding,
     private val appbar: AppBarLayout,
-    private val toolbar: Toolbar
+    private val toolbar: Toolbar,
+    private val onChangeStyle: (id: Int) -> Unit
 ) {
 
-    private val ratioHalfExpanded by lazy {
+    private val ratioExpandedHalf by lazy {
         0.5f
+    }
+
+    private val ratioExpandedQuarter by lazy {
+        ratioExpandedHalf / 2
     }
 
     @Suppress("DEPRECATION")
@@ -34,8 +40,51 @@ class SettingBottomSheet(
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_SETTLING
         bottomSheetBehavior.isDraggable = false
         bottomSheetBehavior.isFitToContents = false
-        bottomSheetBehavior.halfExpandedRatio = ratioHalfExpanded
+        bottomSheetBehavior.halfExpandedRatio = ratioExpandedHalf
         binding.dragView.setOnTouchListener(onDragView)
+        otherView()
+    }
+
+
+    private fun otherView() {
+        binding.radioButtonStyles.setOnCheckedChangeListener(radioButtonEvent)
+        binding.stylesComboBox.onItemSelectedListener = selectedListener
+    }
+
+    private inline fun <reified V> changeStyle(id: Int, parent: V) {
+        when (parent) {
+            is AdapterView<*> -> {
+                binding.radioButtonStyles.check(id)
+            }
+            is RadioGroup -> {
+                binding.stylesComboBox.setSelection(id)
+            }
+        }
+        onChangeStyle(id)
+    }
+
+
+    private val radioButtonEvent by lazy {
+        RadioGroup.OnCheckedChangeListener { group, checkedId ->
+            changeStyle(checkedId - 1, group)
+        }
+    }
+
+    private val selectedListener by lazy {
+        object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                changeStyle(position + 1, parent)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
     }
 
     private val bottomSheetBehavior: BottomSheetBehavior<LinearLayout> by lazy {
@@ -60,9 +109,6 @@ class SettingBottomSheet(
                 }
             }
 
-            private var isChanged = false
-            private var isHalfExpanded = false
-
             private val lessThanHalfExpandHandle: Event by lazy {
                 Event()
             }
@@ -73,10 +119,9 @@ class SettingBottomSheet(
 
             @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
-//                Log.d("ccccccccccccccccccc", slideOffset.toString())
-                if (slideOffset >= ratioHalfExpanded) {
+                if (slideOffset >= ratioExpandedHalf) {
                     val currentActionBarSize =
-                        actionBarSize * (slideOffset - ratioHalfExpanded) * (1 / ratioHalfExpanded)
+                        actionBarSize * (slideOffset - ratioExpandedHalf) * (1 / ratioExpandedHalf)
                     showAppBar(toolbar, currentActionBarSize - actionBarSize)
                     showView(appbar, currentActionBarSize.toInt())
                     lessThanHalfExpandHandle.reset()

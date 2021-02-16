@@ -5,6 +5,7 @@
     <data>
 
     </data>
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
@@ -12,9 +13,10 @@
         android:layout_gravity="bottom"
         android:background="@drawable/top_corner"
         android:theme="@style/Theme.MapViewDemo"
-        app:behavior_peekHeight="80dp"
         app:behavior_hideable="false"
+        app:behavior_peekHeight="80dp"
         app:layout_behavior=".CustomBottomSheet">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -33,7 +35,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
                     android:background="@drawable/all_corner"
-                    android:backgroundTint="@color/black"/>
+                    android:backgroundTint="@color/black" />
             </LinearLayout>
 
             <EditText
@@ -42,21 +44,57 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:inputType="textPersonName"
-                android:hint="Search" />
+                android:hint="Search"
+                android:inputType="textPersonName" />
 
-<!--            <com.google.android.material.textfield.TextInputLayout-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:paddingLeft="16dp"-->
-<!--                android:paddingRight="16dp">-->
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/styles_combo_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="0dp"
+                android:entries="@array/styles" />
 
-<!--                <com.google.android.material.textfield.TextInputEditText-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:hint="Search"-->
-<!--                    android:inputType="text" />-->
-<!--            </com.google.android.material.textfield.TextInputLayout>-->
+            <RadioGroup
+                android:id="@+id/radio_button_styles"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:checkedButton="1">
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/none" />
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/normal" />
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/satellite" />
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/terrain" />
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hybrid" />
+
+                <RadioButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/auto" />
+            </RadioGroup>
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
