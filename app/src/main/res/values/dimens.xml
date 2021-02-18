@@ -2,4 +2,6 @@
 <resources>
     <dimen name="height_layout_drag_view">16dp</dimen>
     <dimen name="height_drag_view">4dp</dimen>
+    <dimen name="combo_box_height">20dp</dimen>
+    <dimen name="radio_group_height">300dp</dimen>
 </resources>

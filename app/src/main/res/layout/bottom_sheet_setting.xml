@@ -38,26 +38,33 @@
                     android:backgroundTint="@color/black" />
             </LinearLayout>
 
-            <EditText
-                android:id="@+id/editTextTextPersonName"
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/search"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:hint="Search"
-                android:inputType="textPersonName" />
-
-            <androidx.appcompat.widget.AppCompatSpinner
-                android:id="@+id/styles_combo_box"
+                android:iconifiedByDefault="false"
+                android:inputType="text"
+                android:queryHint="Search"
+                app:queryHint="Search" />
+            <LinearLayout
+                android:id="@+id/layout_combo_box"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="#FFF"
                 android:layout_marginStart="16dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginBottom="0dp"
-                android:entries="@array/styles" />
+                android:layout_marginBottom="0dp">
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/styles_combo_box"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/combo_box_height"
+                    android:entries="@array/styles" />
+            </LinearLayout>
 
             <RadioGroup
                 android:id="@+id/radio_button_styles"
@@ -67,32 +74,32 @@
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/none" />
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/normal" />
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/satellite" />
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/terrain" />
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/hybrid" />
 
                 <RadioButton
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/auto" />
             </RadioGroup>
         </LinearLayout>

@@ -2,13 +2,17 @@ package pnam.joker.mapviewdemo
 
 import android.content.Context
 import android.graphics.Rect
+import android.location.Address
+import android.location.Geocoder
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil.setContentView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -18,6 +22,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import pnam.joker.mapviewdemo.databinding.ActivityMainBinding
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -63,6 +68,14 @@ class MainActivity : AppCompatActivity() {
                     MarkerOptions().position(latlng).title("Current")
                 )
             }
+            map.setOnPoiClickListener { point ->
+                Toast.makeText(
+                    this, """Clicked: ${point.name}
+                        Place ID:${point.placeId}
+                        Latitude:${point.latLng.latitude} Longitude:${point.latLng.longitude}""",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             map.mapType = GoogleMap.MAP_TYPE_NONE
         }
     }
@@ -74,15 +87,51 @@ class MainActivity : AppCompatActivity() {
             binding.appbar,
             binding.toolbar,
             changeStyleMap
-        )
+        ).apply {
+            queryTextListener = object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    query?.toLowerCase()?.let { requireQuery ->
+                        searchLocation(requireQuery)?.let { addresses ->
+                            val address = if(addresses.isEmpty()){
+                                return true
+                            }else{
+                                addresses[0]
+                            }
+                            val latLng = LatLng(address.latitude, address.longitude)
+                            map.addMarker(MarkerOptions().position(latLng).title("Current"))
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10F))
+                        }
+                    }
+                    return false
+                }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    newText?.toLowerCase()?.let {query ->
+                        searchLocation(query)?.let { addresses ->
+
+                        }
+                    }
+                    return true
+                }
+
+                private fun searchLocation(query: String): MutableList<Address>? =
+                    if (query != "") {
+                        try {
+                            Geocoder(this@MainActivity).getFromLocationName(query, 10)
+                        } catch (e: IOException) {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+            }
+        }
     }
 
     private val changeStyleMap: (id: Int) -> Unit by lazy {
         { id ->
             if (id < 6) {
                 map.mapType = id
-            } else {
-
             }
         }
     }

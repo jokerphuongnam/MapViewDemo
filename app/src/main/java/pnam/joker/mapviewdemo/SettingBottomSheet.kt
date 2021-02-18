@@ -9,9 +9,15 @@ import android.widget.AdapterView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import pnam.joker.mapviewdemo.R.dimen.combo_box_height
+import pnam.joker.mapviewdemo.R.dimen.height_drag_view
+import pnam.joker.mapviewdemo.R.dimen.height_layout_drag_view
+import pnam.joker.mapviewdemo.R.dimen.radio_group_height
 import pnam.joker.mapviewdemo.R.drawable.top_corner
 import pnam.joker.mapviewdemo.R.drawable.uncorner
 import pnam.joker.mapviewdemo.databinding.BottomSheetSettingBinding
@@ -27,7 +33,7 @@ class SettingBottomSheet(
 ) {
 
     private val ratioExpandedHalf by lazy {
-        0.5f
+        0.6f
     }
 
     private val ratioExpandedQuarter by lazy {
@@ -42,9 +48,11 @@ class SettingBottomSheet(
         bottomSheetBehavior.isFitToContents = false
         bottomSheetBehavior.halfExpandedRatio = ratioExpandedHalf
         binding.dragView.setOnTouchListener(onDragView)
+        binding.search.setOnQueryTextListener(queryTextListener)
         otherView()
     }
 
+    lateinit var queryTextListener: OnQueryTextListener
 
     private fun otherView() {
         binding.radioButtonStyles.setOnCheckedChangeListener(radioButtonEvent)
@@ -104,8 +112,26 @@ class SettingBottomSheet(
         @SuppressLint("UseCompatLoadingForDrawables")
         object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                    bottomSheetBehavior.isDraggable = false
+                when(newState){
+                    BottomSheetBehavior.STATE_HALF_EXPANDED ->{
+                        binding.layoutComboBox.showView(comboBoxHeight.toInt())
+                        binding.stylesComboBox.changePosition(0F)
+                    }
+                    BottomSheetBehavior.STATE_COLLAPSED ->{
+                        bottomSheetBehavior.isDraggable = false
+                    }
+                    BottomSheetBehavior.STATE_DRAGGING -> {
+
+                    }
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+
+                    }
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+
+                    }
+                    BottomSheetBehavior.STATE_SETTLING -> {
+
+                    }
                 }
             }
 
@@ -117,59 +143,102 @@ class SettingBottomSheet(
                 Event()
             }
 
+            private fun changeAppBarSize(slideOffset: Float) {
+                val currentActionBarSize =
+                    actionBarSize * ((slideOffset - ratioExpandedHalf) /(1 -ratioExpandedHalf))
+                toolbar.changePosition(currentActionBarSize - actionBarSize)
+                appbar.showView(currentActionBarSize.toInt())
+            }
+
+            private fun changeDragViewSize(slideOffset: Float) {
+                if (slideOffset == 1F) {
+                    greaterThanHalfHandle.reset {
+                        binding.view.hideView()
+                        binding.dragView.showView(8)
+                        binding.bottomSheet.setBackgroundResource(uncorner)
+                    }
+                } else {
+                    greaterThanHalfHandle.treatIfNotProcess {
+                        binding.dragView.showView(dragViewSize.toInt())
+                        binding.view.showView(viewSize.toInt())
+                        binding.bottomSheet.setBackgroundResource(top_corner)
+                    }
+                }
+            }
+
+            private val comboBoxHeight by lazy {
+                activity.resources.getDimension(combo_box_height)
+            }
+
+            private val radioGroupHeight by lazy {
+                activity.resources.getDimension(radio_group_height)
+            }
+
+            private fun changeChildSize(slideOffset: Float) {
+                val currentRatio = (1 - slideOffset - ratioExpandedQuarter) / ratioExpandedQuarter
+                when (slideOffset) {
+                    1F -> {
+                        binding.radioButtonStyles.showView(radioGroupHeight.toInt())
+                    }
+                    in (1 - ratioExpandedQuarter)..1F -> {
+                        val radioSize = radioGroupHeight * (-currentRatio)
+                        binding.radioButtonStyles.showView(radioSize.toInt())
+                    }
+                    1 - ratioExpandedQuarter -> {
+                        binding.layoutComboBox.hideView()
+                        binding.stylesComboBox.changePosition(-comboBoxHeight)
+                    }
+                    in ratioExpandedHalf..(1 - ratioExpandedQuarter) -> {
+                        val comboBoxSize = comboBoxHeight * currentRatio
+                        binding.layoutComboBox.showView(comboBoxSize.toInt())
+                        binding.stylesComboBox.changePosition(comboBoxHeight - comboBoxSize)
+                    }
+                }
+            }
+
             @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 if (slideOffset >= ratioExpandedHalf) {
-                    val currentActionBarSize =
-                        actionBarSize * (slideOffset - ratioExpandedHalf) * (1 / ratioExpandedHalf)
-                    showAppBar(toolbar, currentActionBarSize - actionBarSize)
-                    showView(appbar, currentActionBarSize.toInt())
                     lessThanHalfExpandHandle.reset()
-                    if (slideOffset == 1.0F) {
-                        greaterThanHalfHandle.reset {
-                            hideView(binding.view)
-                            showView(binding.dragView, 8)
-                            binding.bottomSheet.setBackgroundResource(uncorner)
-                        }
-                    } else {
-                        greaterThanHalfHandle.treatIfNotProcess {
-                            showView(binding.dragView, dragViewSize.toInt())
-                            showView(binding.view, viewSize.toInt())
-                            binding.bottomSheet.setBackgroundResource(top_corner)
-                        }
-                    }
+                    changeAppBarSize(slideOffset)
+                    changeDragViewSize(slideOffset)
+                    changeChildSize(slideOffset)
                 } else {
                     lessThanHalfExpandHandle.treatIfNotProcess {
-                        hideView(appbar)
+                        appbar.hideView()
+                        binding.radioButtonStyles.hideView()
                     }
+                    val comboBoxSize = comboBoxHeight * (slideOffset / ratioExpandedHalf)
+                    binding.layoutComboBox.showView(comboBoxSize.toInt())
+                    binding.stylesComboBox.changePosition(comboBoxHeight - comboBoxSize)
                 }
             }
         }
     }
 
     private val dragViewSize: Float by lazy {
-        activity.resources.getDimension(R.dimen.height_layout_drag_view)
+        activity.resources.getDimension(height_layout_drag_view)
     }
 
 
     private val viewSize: Float by lazy {
-        activity.resources.getDimension(R.dimen.height_drag_view)
+        activity.resources.getDimension(height_drag_view)
     }
 
-    private fun hideView(view: View) {
-        val params = view.layoutParams
+    private fun View.hideView() {
+        val params = layoutParams
         params.height = 0
-        view.layoutParams = params
+        layoutParams = params
     }
 
-    private fun showAppBar(view: View, yPosition: Float) {
-        view.y = yPosition
+    private fun View.changePosition(yPosition: Float) {
+        y = yPosition
     }
 
-    private fun showView(view: View, size: Int) {
-        val params = view.layoutParams
+    private fun View.showView(size: Int) {
+        val params = layoutParams
         params.height = size
-        view.layoutParams = params
+        layoutParams = params
     }
 
     private val actionBarSize: Int by lazy {
@@ -194,7 +263,7 @@ class SettingBottomSheet(
             }
         }
 
-        fun treatIfNotProcess() = treatIfNotProcess(null)
+//        fun treatIfNotProcess() = treatIfNotProcess(null)
 
         fun reset(handle: (() -> Unit)?) {
             hasBeenHandled = false
