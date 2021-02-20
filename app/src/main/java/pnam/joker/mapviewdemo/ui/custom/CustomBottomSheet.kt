@@ -1,4 +1,4 @@
-package pnam.joker.mapviewdemo
+package pnam.joker.mapviewdemo.ui.custom
 
 import android.content.Context
 import android.graphics.Rect

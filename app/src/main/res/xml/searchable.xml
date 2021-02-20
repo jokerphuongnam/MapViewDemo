@@ -2,5 +2,6 @@
 <searchable xmlns:android="http://schemas.android.com/apk/res/android"
     android:label="@string/search"
     android:hint="@string/search"
-    android:searchSuggestAuthority="com.example.MySuggestionProvider">
+    android:searchSuggestAuthority="com.example.MySuggestionProvider"
+    android:voiceSearchMode="showVoiceSearchButton">
 </searchable>

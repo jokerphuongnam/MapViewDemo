@@ -1,4 +1,4 @@
-package pnam.joker.mapviewdemo
+package pnam.joker.mapviewdemo.ui.main.bottomsheet
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -14,6 +14,7 @@ import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import pnam.joker.mapviewdemo.R
 import pnam.joker.mapviewdemo.R.dimen.combo_box_height
 import pnam.joker.mapviewdemo.R.dimen.height_drag_view
 import pnam.joker.mapviewdemo.R.dimen.height_layout_drag_view
@@ -251,6 +252,10 @@ class SettingBottomSheet(
         set(value) {
             bottomSheetBehavior.state = value
         }
+
+    val search: SearchView by lazy {
+        binding.search
+    }
 
     class Event {
         var hasBeenHandled: Boolean = false

@@ -15,7 +15,7 @@
         android:theme="@style/Theme.MapViewDemo"
         app:behavior_hideable="false"
         app:behavior_peekHeight="80dp"
-        app:layout_behavior=".CustomBottomSheet">
+        app:layout_behavior="pnam.joker.mapviewdemo.ui.custom.CustomBottomSheet">
 
         <LinearLayout
             android:layout_width="match_parent"
