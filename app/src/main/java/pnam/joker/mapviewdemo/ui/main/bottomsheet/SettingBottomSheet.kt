@@ -1,24 +1,19 @@
 package pnam.joker.mapviewdemo.ui.main.bottomsheet
 
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.Context
 import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.widget.AdapterView
-import android.widget.LinearLayout
 import android.widget.RadioGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.appcompat.widget.Toolbar
+import androidx.core.widget.NestedScrollView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import pnam.joker.mapviewdemo.R
-import pnam.joker.mapviewdemo.R.dimen.combo_box_height
-import pnam.joker.mapviewdemo.R.dimen.height_drag_view
-import pnam.joker.mapviewdemo.R.dimen.height_layout_drag_view
-import pnam.joker.mapviewdemo.R.dimen.radio_group_height
+import pnam.joker.mapviewdemo.R.dimen.*
 import pnam.joker.mapviewdemo.R.drawable.top_corner
 import pnam.joker.mapviewdemo.R.drawable.uncorner
 import pnam.joker.mapviewdemo.databinding.BottomSheetSettingBinding
@@ -26,7 +21,7 @@ import pnam.joker.mapviewdemo.databinding.BottomSheetSettingBinding
 
 @SuppressLint("ClickableViewAccessibility")
 class SettingBottomSheet(
-    private val activity: Activity,
+    private val context: Context,
     private val binding: BottomSheetSettingBinding,
     private val appbar: AppBarLayout,
     private val toolbar: Toolbar,
@@ -49,11 +44,8 @@ class SettingBottomSheet(
         bottomSheetBehavior.isFitToContents = false
         bottomSheetBehavior.halfExpandedRatio = ratioExpandedHalf
         binding.dragView.setOnTouchListener(onDragView)
-        binding.search.setOnQueryTextListener(queryTextListener)
         otherView()
     }
-
-    lateinit var queryTextListener: OnQueryTextListener
 
     private fun otherView() {
         binding.radioButtonStyles.setOnCheckedChangeListener(radioButtonEvent)
@@ -96,8 +88,8 @@ class SettingBottomSheet(
         }
     }
 
-    private val bottomSheetBehavior: BottomSheetBehavior<LinearLayout> by lazy {
-        BottomSheetBehavior.from(activity.findViewById(R.id.bottom_sheet))
+    private val bottomSheetBehavior: BottomSheetBehavior<NestedScrollView> by lazy {
+        BottomSheetBehavior.from(binding.bottomSheet)
     }
 
     private val onDragView: View.OnTouchListener by lazy {
@@ -146,8 +138,8 @@ class SettingBottomSheet(
 
             private fun changeAppBarSize(slideOffset: Float) {
                 val currentActionBarSize =
-                    actionBarSize * ((slideOffset - ratioExpandedHalf) /(1 -ratioExpandedHalf))
-                toolbar.changePosition(currentActionBarSize - actionBarSize)
+                    context.actionBarSize * ((slideOffset - ratioExpandedHalf) /(1 -ratioExpandedHalf))
+                toolbar.changePosition(currentActionBarSize - context.actionBarSize)
                 appbar.showView(currentActionBarSize.toInt())
             }
 
@@ -168,11 +160,11 @@ class SettingBottomSheet(
             }
 
             private val comboBoxHeight by lazy {
-                activity.resources.getDimension(combo_box_height)
+                context.resources.getDimension(combo_box_height)
             }
 
             private val radioGroupHeight by lazy {
-                activity.resources.getDimension(radio_group_height)
+                context.resources.getDimension(radio_group_height)
             }
 
             private fun changeChildSize(slideOffset: Float) {
@@ -218,12 +210,12 @@ class SettingBottomSheet(
     }
 
     private val dragViewSize: Float by lazy {
-        activity.resources.getDimension(height_layout_drag_view)
+        context.resources.getDimension(height_layout_drag_view)
     }
 
 
     private val viewSize: Float by lazy {
-        activity.resources.getDimension(height_drag_view)
+        context.resources.getDimension(height_drag_view)
     }
 
     private fun View.hideView() {
@@ -242,11 +234,6 @@ class SettingBottomSheet(
         layoutParams = params
     }
 
-    private val actionBarSize: Int by lazy {
-        activity.theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
-            .getDimension(0, 0f).toInt()
-    }
-
     var state: Int
         get() = bottomSheetBehavior.state
         set(value) {
@@ -255,6 +242,11 @@ class SettingBottomSheet(
 
     val search: SearchView by lazy {
         binding.search
+    }
+
+    private val Context.actionBarSize: Int by lazy {
+        context.theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
+            .getDimension(0, 0f).toInt()
     }
 
     class Event {

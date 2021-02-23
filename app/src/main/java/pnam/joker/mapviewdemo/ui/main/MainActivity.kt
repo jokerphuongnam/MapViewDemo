@@ -4,8 +4,6 @@ import android.app.SearchManager
 import android.content.Context
 import android.database.MatrixCursor
 import android.graphics.Rect
-import android.location.Address
-import android.location.Geocoder
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.MenuItem
@@ -16,10 +14,13 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.SearchView.OnQueryTextListener
+import androidx.appcompat.widget.SearchView.OnSuggestionListener
 import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.databinding.DataBindingUtil.setContentView
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -32,8 +33,6 @@ import pnam.joker.mapviewdemo.R
 import pnam.joker.mapviewdemo.databinding.ActivityMainBinding
 import pnam.joker.mapviewdemo.ui.main.bottomsheet.SettingBottomSheet
 import pnam.joker.mapviewdemo.utils.Constants.ADDRESS
-import java.io.IOException
-import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -49,6 +48,30 @@ class MainActivity : AppCompatActivity() {
         setUpActionBar()
         setUpGoogleMap()
         setUpBottomSheet()
+        setUpViewModel()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.onPause()
+    }
+
+    private fun setUpViewModel() {
+        viewModel.locationLiveData.observe(Observer {latLng ->
+            map.addMarker(MarkerOptions().position(latLng).title("Current"))
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10F))
+        })
+        viewModel.addressesLiveData.observe(Observer {addresses->
+            val cursor = MatrixCursor(arrayOf(BaseColumns._ID, ADDRESS))
+            for (index in addresses.indices) {
+                cursor.addRow(arrayOf(index, addresses[index]))
+            }
+            adapter.changeCursor(cursor)
+        })
+    }
+
+    private fun <T> LiveData<T>.observe(observer: Observer<T>) {
+        observe(this@MainActivity, observer)
     }
 
     private fun setUpActionBar() {
@@ -92,6 +115,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val changeStyleMap: (id: Int) -> Unit by lazy {
+        { id: Int ->
+            if (id < 6) {
+                map.mapType = id
+            }
+        }
+    }
 
     private val settingBottomSheet: SettingBottomSheet by lazy {
         SettingBottomSheet(
@@ -100,88 +130,59 @@ class MainActivity : AppCompatActivity() {
             binding.appbar,
             binding.toolbar,
             changeStyleMap
-        ).apply {
-            queryTextListener = object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String?): Boolean {
-                    hidekeyboard()
-                    setCollapsedBottomSheet()
-                    query?.toLowerCase(Locale.getDefault())?.let { requireQuery ->
-                        searchLocation(requireQuery)?.let { addresses ->
-                            val address = if (addresses.isEmpty()) {
-                                return true
-                            } else {
-                                addresses[0]
-                            }
-                            val latLng = LatLng(address.latitude, address.longitude)
-                            map.addMarker(MarkerOptions().position(latLng).title("Current"))
-                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 10F))
-                        }
-                    }
-                    return false
-                }
-
-                override fun onQueryTextChange(newText: String?): Boolean {
-                    if (settingBottomSheet.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                        return true
-                    }
-                    newText?.toLowerCase(Locale.getDefault())?.let { query ->
-                        val cursor = MatrixCursor(arrayOf(BaseColumns._ID, ADDRESS))
-                        if (query.isNotEmpty()) {
-                            searchLocation(query)?.let { addresses ->
-                                if (addresses.isNotEmpty()) {
-                                    val names = addresses.toStringNames()
-                                    for (index in 0 until addresses.size) {
-                                        cursor.addRow(arrayOf(index, names[index]))
-                                    }
-                                }
-                            }
-                        }
-                        adapter.changeCursor(cursor)
-                    }
-                    return true
-                }
-
-                fun MutableList<Address>.toStringNames(): MutableList<String> {
-                    val mutableListNames = mutableListOf<String>()
-                    for (name in this) {
-                        mutableListNames.add(name.getAddressLine(0))
-                    }
-                    return mutableListNames
-                }
-
-                private fun searchLocation(query: String): MutableList<Address>? =
-                    if (query != "") {
-                        try {
-                            Geocoder(this@MainActivity, Locale.getDefault()).getFromLocationName(
-                                query,
-                                1
-                            )
-                        } catch (e: IOException) {
-                            null
-                        }
-                    } else {
-                        null
-                    }
-            }
-        }
-    }
-
-    private val changeStyleMap: (id: Int) -> Unit by lazy {
-        { id ->
-            if (id < 6) {
-                map.mapType = id
-            }
-        }
+        )
     }
 
     private fun setUpBottomSheet() {
-        settingBottomSheet.search.setSearchableInfo(
-            (getSystemService(Context.SEARCH_SERVICE) as SearchManager).getSearchableInfo(
-                componentName
+        settingBottomSheet.search.apply {
+            setSearchableInfo(
+                (getSystemService(Context.SEARCH_SERVICE) as SearchManager).getSearchableInfo(
+                    componentName
+                )
             )
-        )
-        settingBottomSheet.search.suggestionsAdapter = adapter
+            suggestionsAdapter = adapter
+            setOnQueryTextListener(queryCallback)
+            setOnSuggestionListener(clickItemCallBack)
+        }
         settingBottomSheet.show()
+    }
+
+    private val clickItemCallBack: OnSuggestionListener by lazy {
+        object : OnSuggestionListener {
+            override fun onSuggestionSelect(position: Int): Boolean {
+                return true
+            }
+
+            override fun onSuggestionClick(position: Int): Boolean {
+                settingBottomSheet.search.setQuery(viewModel.addresses[position], true)
+                return true
+            }
+        }
+    }
+
+    private val queryCallback: OnQueryTextListener by lazy {
+        object : OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                hidekeyboard()
+                setCollapsedBottomSheet()
+                query ?: return true
+                if(query.isNotEmpty()){
+                    viewModel.getLocationByName(query)
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (settingBottomSheet.state == BottomSheetBehavior.STATE_COLLAPSED) {
+                    return true
+                }
+                newText?: return true
+                if(newText.isNotEmpty()){
+                    viewModel.getAddressesByName(newText)
+                }
+                return true
+            }
+        }
     }
 
     private val adapter by lazy {
@@ -243,5 +244,10 @@ class MainActivity : AppCompatActivity() {
         currentFocus?.let {
             hideKeyboard(it)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding.executePendingBindings()
     }
 }

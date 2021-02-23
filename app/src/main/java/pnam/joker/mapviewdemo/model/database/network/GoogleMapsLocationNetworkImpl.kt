@@ -1,5 +1,5 @@
 package pnam.joker.mapviewdemo.model.database.network
 
-import okhttp3.OkHttpClient
+import javax.inject.Inject
 
-class GoogleMapsLocationNetworkImpl(okHttpClient: OkHttpClient) : LocationNetwork
+class GoogleMapsLocationNetworkImpl @Inject constructor() : LocationNetwork

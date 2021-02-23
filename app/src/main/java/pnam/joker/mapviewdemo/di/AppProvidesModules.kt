@@ -21,10 +21,5 @@ object AppProvidesModules {
 
     @Provides
     @Singleton
-    fun provideLocationLocal(@ApplicationContext context: Context): LocationLocal =
-        GeocoderLocationLocalImpl(Geocoder(context, Locale.getDefault()))
-
-    @Provides
-    @Singleton
-    fun provideLocationNetwork(): LocationNetwork = GoogleMapsLocationNetworkImpl(OkHttpClient())
+    fun provideGeocoder(@ApplicationContext context: Context) : Geocoder = Geocoder(context, Locale.getDefault())
 }
